@@ -11,33 +11,48 @@ import { initSocket } from "./config/socket.js";
 
 dotenv.config();
 
-// Connect to MongoDB
 connectDB();
 
 const app = express();
 const server = http.createServer(app);
 
-// Socket.IO setup
+// ✅ Allowed origins
+const allowedOrigins = [
+  "https://desichat-app.onrender.com",
+  "http://localhost:5173"
+];
+
+// ✅ Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: "https://desichat-app.onrender.com",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
+    credentials: true
   },
 });
 
-// Initialize socket events
+// attach io to req
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+// init socket
 initSocket(io);
 
-// Middleware
-app.use(cors({ origin: "https://desichat-app.onrender.com" }));
+// ✅ Express CORS
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
+
 app.use(express.json());
 
 // Routes
-app.use("/api/auth",     authRoutes);
-app.use("/api/users",    userRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
 
-// Health check
 app.get("/", (req, res) => {
   res.json({ message: "PulseChat backend is running ✅" });
 });
