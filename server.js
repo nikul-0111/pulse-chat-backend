@@ -20,7 +20,7 @@ const server = http.createServer(app);
 // Socket.IO setup
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: "https://desichat-app.onrender.com",
     methods: ["GET", "POST"],
   },
 });
@@ -29,7 +29,7 @@ const io = new Server(server, {
 initSocket(io);
 
 // Middleware
-app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }));
+app.use(cors({ origin: "https://desichat-app.onrender.com" }));
 app.use(express.json());
 
 // Routes
