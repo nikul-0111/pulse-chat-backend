@@ -18,7 +18,7 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 
-// ✅ Allowed origins (IMPORTANT)
+// ✅ Allowed origins
 const allowedOrigins = [
   "http://localhost:5173",
   "https://desichat-app.onrender.com",
@@ -26,6 +26,9 @@ const allowedOrigins = [
 
 // ================= SOCKET =================
 const io = new Server(server, {
+  // ✅ FIX 1: Increase Socket.io buffer size to 50MB
+  // This allows large Base64 image strings to pass through the socket
+  maxHttpBufferSize: 5e7, 
   cors: {
     origin: allowedOrigins,
     methods: ["GET", "POST"],
@@ -46,9 +49,7 @@ initSocket(io);
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow requests with no origin (mobile apps, postman)
       if (!origin) return callback(null, true);
-
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       } else {
@@ -59,7 +60,10 @@ app.use(
   })
 );
 
-app.use(express.json());
+// ✅ FIX 2: Increase Express JSON limit to 50MB
+// This ensures that if you ever send images via standard POST requests, they aren't blocked
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // ================= ROUTES =================
 app.use("/api/auth", authRoutes);
